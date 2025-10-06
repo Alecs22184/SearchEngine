@@ -358,3 +358,6 @@ temp/
 # Project specific
 search_engine.db
 test_data/
+
+# Batch files
+*.bat
