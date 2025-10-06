@@ -1,4 +1,0 @@
-C:/Users/sayco/source/repos/SearchEngine/build/CMakeFiles/spider.dir
-C:/Users/sayco/source/repos/SearchEngine/build/CMakeFiles/search_server.dir
-C:/Users/sayco/source/repos/SearchEngine/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/sayco/source/repos/SearchEngine/build/CMakeFiles/ZERO_CHECK.dir
