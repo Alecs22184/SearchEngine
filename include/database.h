@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <mutex>
 
 struct Document {
     int id;
@@ -68,6 +69,7 @@ private:
     std::string GenerateSnippet(const std::string& content, const std::vector<std::string>& search_words);
 
     std::unique_ptr<pqxx::connection> conn_;
+    std::mutex db_mutex_;
     bool connected_ = false;
 };
 

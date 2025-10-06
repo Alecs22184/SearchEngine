@@ -361,3 +361,22 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Search Engine specific
+config.ini
+database_backup/
+spider_log.txt
+server_log.txt
+
+# Downloaded content cache
+cache/
+temp/
+
+# SSL certificates (if any)
+*.pem
+*.key
+*.crt
+
+# Project specific
+search_engine.db
+test_data/

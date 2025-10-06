@@ -7,6 +7,7 @@ C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXCompilerABI.cpp
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCXXInformation.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCommonLanguageInclude.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeCompilerIdDetection.cmake
+C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDependentOption.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCCompiler.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCXXCompiler.cmake
 C:/Program Files/CMake/share/cmake-3.29/Modules/CMakeDetermineCompileFeatures.cmake
@@ -110,6 +111,7 @@ C:/Users/sayco/source/repos/SearchEngine/build/CMakeFiles/3.29.4/CMakeSystem.cma
 C:/Users/sayco/source/repos/SearchEngine/config.ini
 C:/vcpkg/installed/x64-windows/share/boost/BoostConfig.cmake
 C:/vcpkg/installed/x64-windows/share/boost/BoostConfigVersion.cmake
+C:/vcpkg/installed/x64-windows/share/boost/vcpkg-cmake-wrapper.cmake
 C:/vcpkg/installed/x64-windows/share/boost_assert/boost_assert-config-version.cmake
 C:/vcpkg/installed/x64-windows/share/boost_assert/boost_assert-config.cmake
 C:/vcpkg/installed/x64-windows/share/boost_assert/boost_assert-targets.cmake
@@ -139,3 +141,4 @@ C:/vcpkg/installed/x64-windows/share/boost_variant2/boost_variant2-targets.cmake
 C:/vcpkg/installed/x64-windows/share/boost_winapi/boost_winapi-config-version.cmake
 C:/vcpkg/installed/x64-windows/share/boost_winapi/boost_winapi-config.cmake
 C:/vcpkg/installed/x64-windows/share/boost_winapi/boost_winapi-targets.cmake
+C:/vcpkg/scripts/buildsystems/vcpkg.cmake

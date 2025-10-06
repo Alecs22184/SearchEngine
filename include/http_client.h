@@ -4,10 +4,13 @@
 #include <string>
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/asio/ssl.hpp>
 
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;
+namespace ssl = boost::asio::ssl;
 using tcp = net::ip::tcp;
 
 class HttpClient {
@@ -31,6 +34,7 @@ private:
     std::string ResolveUrl(const std::string& url, std::string& host, std::string& port, std::string& target);
 
     net::io_context ioc_;
+    ssl::context ssl_ctx_;
     int timeout_ = 30;
     std::string user_agent_ = "SearchEngineBot/1.0";
 };

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <regex>
 #include <map>
+#include <thread>
 
 Database::Database() : connected_(false) {}
 
@@ -13,6 +14,8 @@ Database::~Database() {
 
 bool Database::Connect(const std::string& host, int port, const std::string& dbname,
     const std::string& user, const std::string& password) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
+
     try {
         std::string connection_string =
             "host=" + host + " " +
@@ -40,6 +43,7 @@ bool Database::Connect(const std::string& host, int port, const std::string& dbn
 }
 
 void Database::Disconnect() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (connected_ && conn_) {
         conn_->close();
         connected_ = false;
@@ -48,6 +52,7 @@ void Database::Disconnect() {
 }
 
 bool Database::CreateTables() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return false;
 
     try {
@@ -99,6 +104,7 @@ bool Database::CreateTables() {
 }
 
 int Database::AddDocument(const std::string& url, const std::string& title, const std::string& content) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return -1;
 
     try {
@@ -132,6 +138,7 @@ int Database::AddDocument(const std::string& url, const std::string& title, cons
 }
 
 bool Database::DocumentExists(const std::string& url) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return false;
 
     try {
@@ -148,6 +155,7 @@ bool Database::DocumentExists(const std::string& url) {
 }
 
 bool Database::UpdateDocument(const std::string& url, const std::string& title, const std::string& content) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return false;
 
     try {
@@ -170,6 +178,7 @@ bool Database::UpdateDocument(const std::string& url, const std::string& title, 
 
 std::vector<Document> Database::GetAllDocuments() {
     std::vector<Document> documents;
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return documents;
 
     try {
@@ -194,6 +203,7 @@ std::vector<Document> Database::GetAllDocuments() {
 }
 
 int Database::AddWord(const std::string& word) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return -1;
 
     try {
@@ -216,6 +226,7 @@ int Database::AddWord(const std::string& word) {
 }
 
 int Database::GetWordId(const std::string& word) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return -1;
 
     try {
@@ -238,6 +249,7 @@ int Database::GetWordId(const std::string& word) {
 
 std::vector<std::string> Database::GetAllWords() {
     std::vector<std::string> words;
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return words;
 
     try {
@@ -257,6 +269,7 @@ std::vector<std::string> Database::GetAllWords() {
 }
 
 void Database::AddDocumentWord(int document_id, int word_id, int frequency) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return;
 
     try {
@@ -276,30 +289,45 @@ void Database::AddDocumentWord(int document_id, int word_id, int frequency) {
 }
 
 void Database::UpdateDocumentWords(int document_id, const std::map<std::string, int>& word_frequencies) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return;
 
     try {
+        // Создаем одну транзакцию для всех операций
         pqxx::work txn(*conn_);
 
         // Очищаем старые связи
-        ClearDocumentWords(document_id);
+        txn.exec("DELETE FROM document_words WHERE document_id = " + txn.quote(document_id));
 
-        // Добавляем новые связи
+        // Добавляем новые слова и связи
         for (const auto& [word, freq] : word_frequencies) {
-            int word_id = AddWord(word);
-            if (word_id != -1) {
-                AddDocumentWord(document_id, word_id, freq);
+            // Вставляем слово и получаем его ID в рамках одной транзакции
+            pqxx::result word_result = txn.exec(
+                "INSERT INTO words (word) VALUES (" + txn.quote(word) +
+                ") ON CONFLICT (word) DO UPDATE SET word = EXCLUDED.word RETURNING id"
+            );
+
+            if (!word_result.empty()) {
+                int word_id = word_result[0][0].as<int>();
+
+                // Вставляем связь документа и слова
+                txn.exec(
+                    "INSERT INTO document_words (document_id, word_id, frequency) VALUES (" +
+                    txn.quote(document_id) + ", " + txn.quote(word_id) + ", " + txn.quote(freq) +
+                    ") ON CONFLICT (document_id, word_id) DO UPDATE SET frequency = EXCLUDED.frequency"
+                );
             }
         }
 
         txn.commit();
     }
     catch (const std::exception& e) {
-        std::cerr << "Error updating document words: " << e.what() << std::endl;
+        std::cerr << "Error updating document words for document " << document_id << ": " << e.what() << std::endl;
     }
 }
 
 void Database::ClearDocumentWords(int document_id) {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return;
 
     try {
@@ -314,6 +342,7 @@ void Database::ClearDocumentWords(int document_id) {
 
 std::vector<SearchResult> Database::SearchDocuments(const std::vector<std::string>& search_words, int limit) {
     std::vector<SearchResult> results;
+    std::lock_guard<std::mutex> lock(db_mutex_);
 
     if (!connected_ || search_words.empty()) return results;
 
@@ -393,6 +422,7 @@ std::string Database::GenerateSnippet(const std::string& content, const std::vec
 }
 
 void Database::PrintStats() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return;
 
     try {
@@ -414,6 +444,7 @@ void Database::PrintStats() {
 }
 
 int Database::GetDocumentCount() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return 0;
     try {
         pqxx::work txn(*conn_);
@@ -427,6 +458,7 @@ int Database::GetDocumentCount() {
 }
 
 int Database::GetWordCount() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return 0;
     try {
         pqxx::work txn(*conn_);
@@ -440,6 +472,7 @@ int Database::GetWordCount() {
 }
 
 int Database::GetDocumentWordCount() {
+    std::lock_guard<std::mutex> lock(db_mutex_);
     if (!connected_) return 0;
     try {
         pqxx::work txn(*conn_);
